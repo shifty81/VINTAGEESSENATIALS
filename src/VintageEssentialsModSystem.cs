@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Server;
@@ -61,7 +62,7 @@ namespace VintageEssentials
                 try
                 {
                     string json = System.Text.Encoding.UTF8.GetString(data);
-                    var dict = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, Vec3d>>(json);
+                    var dict = JsonSerializer.Deserialize<Dictionary<string, Vec3d>>(json);
                     if (dict != null)
                     {
                         playerHomes = dict;
@@ -78,7 +79,7 @@ namespace VintageEssentials
         {
             try
             {
-                string json = Newtonsoft.Json.JsonConvert.SerializeObject(playerHomes);
+                string json = JsonSerializer.Serialize(playerHomes);
                 byte[] data = System.Text.Encoding.UTF8.GetBytes(json);
                 serverApi.WorldManager.SaveGame.StoreData(HOMES_DATA_KEY, data);
             }
@@ -200,8 +201,10 @@ namespace VintageEssentials
                 if (block != null && block.Id != 0 && block.BlockMaterial != EnumBlockMaterial.Air)
                 {
                     // Found a solid block, check if there's air above it
-                    Block blockAbove = blockAccessor.GetBlock(checkPos.X, checkPos.Y + 1, checkPos.Z);
-                    Block blockAbove2 = blockAccessor.GetBlock(checkPos.X, checkPos.Y + 2, checkPos.Z);
+                    BlockPos checkPosAbove = new BlockPos(checkPos.X, checkPos.Y + 1, checkPos.Z);
+                    BlockPos checkPosAbove2 = new BlockPos(checkPos.X, checkPos.Y + 2, checkPos.Z);
+                    Block blockAbove = blockAccessor.GetBlock(checkPosAbove);
+                    Block blockAbove2 = blockAccessor.GetBlock(checkPosAbove2);
                     
                     if (blockAbove != null && blockAbove.BlockMaterial == EnumBlockMaterial.Air &&
                         blockAbove2 != null && blockAbove2.BlockMaterial == EnumBlockMaterial.Air)

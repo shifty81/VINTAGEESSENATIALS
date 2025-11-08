@@ -12,7 +12,7 @@ namespace VintageEssentials
 {
     public class ChestRadiusInventoryDialog : GuiDialogGeneric
     {
-        private ICoreClientAPI capi;
+        private new ICoreClientAPI capi;
         private List<BlockEntityContainer> nearbyContainers = new List<BlockEntityContainer>();
         private List<ItemSlot> allSlots = new List<ItemSlot>();
         private List<ItemSlot> filteredSlots = new List<ItemSlot>();
@@ -40,10 +40,11 @@ namespace VintageEssentials
             BlockPos minPos = new BlockPos((int)(playerPos.X - RADIUS), (int)(playerPos.Y - RADIUS), (int)(playerPos.Z - RADIUS));
             BlockPos maxPos = new BlockPos((int)(playerPos.X + RADIUS), (int)(playerPos.Y + RADIUS), (int)(playerPos.Z + RADIUS));
 
-            capi.World.BlockAccessor.WalkBlocks(minPos, maxPos, (block, pos) =>
+            capi.World.BlockAccessor.WalkBlocks(minPos, maxPos, (block, x, y, z) =>
             {
                 if (block?.BlockEntityClass != null)
                 {
+                    BlockPos pos = new BlockPos(x, y, z);
                     BlockEntity be = capi.World.BlockAccessor.GetBlockEntity(pos);
                     if (be is BlockEntityContainer container && container.Inventory != null)
                     {
@@ -92,7 +93,6 @@ namespace VintageEssentials
         private void ComposeDialog()
         {
             double elemWidth = 500;
-            double elemHeight = 600;
 
             ElementBounds dialogBounds = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.CenterMiddle);
             ElementBounds bgBounds = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
