@@ -23,8 +23,25 @@ A comprehensive mod for Vintage Story that adds essential commands and quality o
 ### Player Inventory Sorting
 
 - **Press `Shift+S`** - Sort your player inventory by name (A-Z)
+- **Locked slots are preserved** - Items in locked slots won't be moved during sorting
 - Quick and convenient organization
 - **Preserves hotbar and offhand** - Your hotbar (slots 1-10) and offhand items remain in place
+
+### Inventory Slot Locking (NEW!)
+
+- **Press `Ctrl+L`** - Toggle slot locking mode
+- **Click on inventory slots** - Lock or unlock up to 10 slots (configurable)
+- **Visual indicators** - Locked slots display a semi-transparent overlay with diagonal lines
+- **Persistent** - Locked slots are saved per character
+- **Protected during sorting** - Items in locked slots stay in place when you sort your inventory
+- Keep your most-used items in predictable locations!
+
+### Mod Configuration
+
+- **Press `Ctrl+Shift+V`** or use `/veconfig` - Open the mod settings dialog
+- Configure maximum number of locked slots (1-20)
+- View all keybinds and their functions
+- **Keybind conflict detection** - Get notified if mod keybinds conflict with game keybinds
 
 ### Stack Size Increases
 
@@ -44,7 +61,9 @@ A comprehensive mod for Vintage Story that adds essential commands and quality o
 ## Keybinds
 
 - **`R`** - Open Chest Radius Inventory (shows all items in chests within 15 blocks)
-- **`Shift+S`** - Sort Player Inventory (cycles through sort modes)
+- **`Shift+S`** - Sort Player Inventory (cycles through sort modes, respects locked slots)
+- **`Ctrl+L`** - Toggle Inventory Slot Locking Mode (click slots to lock/unlock them)
+- **`Ctrl+Shift+V`** - Open Mod Configuration Dialog
 
 You can rebind these keys in the game's Controls settings.
 

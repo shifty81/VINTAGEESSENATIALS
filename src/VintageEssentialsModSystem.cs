@@ -13,14 +13,23 @@ namespace VintageEssentials
         private ICoreServerAPI serverApi;
         private Dictionary<string, Vec3d> playerHomes = new Dictionary<string, Vec3d>();
         private const string HOMES_DATA_KEY = "vintageessentials:homes";
+        private LockedSlotsManager lockedSlotsManager;
+        private ModConfig config;
 
         public override void StartServerSide(ICoreServerAPI api)
         {
             base.StartServerSide(api);
             this.serverApi = api;
 
-            // Load saved home locations
+            // Load configuration
+            config = ModConfig.Load(api);
+
+            // Create locked slots manager
+            lockedSlotsManager = new LockedSlotsManager(api, config);
+
+            // Load saved data
             LoadHomes();
+            lockedSlotsManager.Load(serverApi);
 
             // Register chat commands
             api.ChatCommands.Create("sethome")
@@ -39,7 +48,7 @@ namespace VintageEssentials
                 .RequiresPrivilege(Privilege.chat)
                 .HandleWith(OnRtp);
 
-            // Save homes periodically and on shutdown
+            // Save data periodically and on shutdown
             api.Event.SaveGameLoaded += OnSaveGameLoaded;
             api.Event.GameWorldSave += OnGameWorldSave;
         }
@@ -47,11 +56,13 @@ namespace VintageEssentials
         private void OnSaveGameLoaded()
         {
             LoadHomes();
+            lockedSlotsManager.Load(serverApi);
         }
 
         private void OnGameWorldSave()
         {
             SaveHomes();
+            lockedSlotsManager.Save(serverApi);
         }
 
         private void LoadHomes()
@@ -220,6 +231,7 @@ namespace VintageEssentials
         public override void Dispose()
         {
             SaveHomes();
+            lockedSlotsManager?.Save(serverApi);
             base.Dispose();
         }
     }
