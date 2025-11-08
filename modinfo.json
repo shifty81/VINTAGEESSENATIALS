@@ -3,8 +3,8 @@
   "modid": "vintageessentials",
   "name": "Vintage Essentials",
   "author": "shifty81",
-  "description": "Essential commands and quality of life improvements including /home, /sethome, /rtp commands, chest radius inventory (press R), player inventory sorting (Shift+S), and increased stack sizes",
-  "version": "1.1.0",
+  "description": "Essential commands and quality of life improvements including /home, /sethome, /rtp commands, chest radius inventory (press R), player inventory sorting (Shift+S), inventory slot locking (Ctrl+L), and increased stack sizes",
+  "version": "1.2.0",
   "dependency": {
     "game": "1.19.0"
   },

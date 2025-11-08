@@ -23,7 +23,24 @@ A comprehensive mod for Vintage Story that adds essential commands and quality o
 ### Player Inventory Sorting
 
 - **Press `Shift+S`** - Sort your player inventory by name (A-Z)
+- **Locked slots are preserved** - Items in locked slots won't be moved during sorting
 - Quick and convenient organization
+
+### Inventory Slot Locking (NEW!)
+
+- **Press `Ctrl+L`** - Toggle slot locking mode
+- **Click on inventory slots** - Lock or unlock up to 10 slots (configurable)
+- **Visual indicators** - Locked slots display a semi-transparent overlay with diagonal lines
+- **Persistent** - Locked slots are saved per character
+- **Protected during sorting** - Items in locked slots stay in place when you sort your inventory
+- Keep your most-used items in predictable locations!
+
+### Mod Configuration
+
+- **Press `Ctrl+Shift+V`** or use `/veconfig` - Open the mod settings dialog
+- Configure maximum number of locked slots (1-20)
+- View all keybinds and their functions
+- **Keybind conflict detection** - Get notified if mod keybinds conflict with game keybinds
 
 ### Stack Size Increases
 
@@ -43,7 +60,9 @@ A comprehensive mod for Vintage Story that adds essential commands and quality o
 ## Keybinds
 
 - **`R`** - Open Chest Radius Inventory (shows all items in chests within 15 blocks)
-- **`Shift+S`** - Sort Player Inventory (cycles through sort modes)
+- **`Shift+S`** - Sort Player Inventory (cycles through sort modes, respects locked slots)
+- **`Ctrl+L`** - Toggle Inventory Slot Locking Mode (click slots to lock/unlock them)
+- **`Ctrl+Shift+V`** - Open Mod Configuration Dialog
 
 You can rebind these keys in the game's Controls settings.
 
@@ -181,7 +200,25 @@ The mod will find a safe landing spot at ground level.
 ### Sorting Your Inventory
 
 1. Press `Shift+S` to sort your player inventory by name (A-Z)
-2. Items will be organized alphabetically for easy access
+2. Items in locked slots will remain in their original positions
+3. All other items will be organized alphabetically for easy access
+
+### Locking Inventory Slots
+
+1. Press `Ctrl+L` to enter slot locking mode
+2. Open your inventory (press `E`)
+3. Click on any inventory slot to lock or unlock it
+4. You can lock up to 10 slots by default (configurable in settings)
+5. Locked slots display a yellow diagonal line overlay
+6. Press `Ctrl+L` again to exit slot locking mode
+7. Locked slots are saved and will persist across game sessions
+
+### Configuring the Mod
+
+1. Press `Ctrl+Shift+V` or type `/veconfig` in chat
+2. Adjust the maximum number of locked slots (1-20)
+3. View all keybind information
+4. Click Save to apply changes
 
 
 ## Data Storage

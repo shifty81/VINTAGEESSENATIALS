@@ -13,6 +13,9 @@ namespace VintageEssentials
         private LockedSlotsManager lockedSlotsManager;
         private ModConfig config;
         private KeybindConflictDialog keybindConflictDialog;
+        private ModConfigDialog configDialog;
+        private LockedSlotsHudOverlay lockedSlotsHudOverlay;
+        private InventorySlotClickHandler slotClickHandler;
 
         public override void StartClientSide(ICoreClientAPI api)
         {
@@ -30,6 +33,15 @@ namespace VintageEssentials
             playerSortDialog = new PlayerInventorySortDialog(api, lockedSlotsManager);
             inventoryLockDialog = new InventoryLockDialog(api, lockedSlotsManager, config, OnLockingModeChanged);
             keybindConflictDialog = new KeybindConflictDialog(api);
+            configDialog = new ModConfigDialog(api, config);
+
+            // Create HUD overlay for locked slots
+            lockedSlotsHudOverlay = new LockedSlotsHudOverlay(api, lockedSlotsManager);
+            api.Gui.RegisterDialog(lockedSlotsHudOverlay);
+
+            // Create and initialize slot click handler
+            slotClickHandler = new InventorySlotClickHandler(api, inventoryLockDialog, lockedSlotsManager);
+            slotClickHandler.Initialize();
 
             // Register keybind for chest radius inventory
             clientApi.Input.RegisterHotKey("chestradius", "Open Chest Radius Inventory", GlKeys.R, HotkeyType.GUIOrOtherControls);
@@ -43,10 +55,21 @@ namespace VintageEssentials
             clientApi.Input.RegisterHotKey("toggleslotlock", "Toggle Inventory Slot Locking Mode", GlKeys.L, HotkeyType.InventoryHotkeys, ctrlPressed: true);
             clientApi.Input.SetHotKeyHandler("toggleslotlock", OnToggleSlotLockHotkey);
 
+            // Register keybind for opening config dialog
+            clientApi.Input.RegisterHotKey("veconfig", "Open VintageEssentials Settings", GlKeys.V, HotkeyType.GUIOrOtherControls, ctrlPressed: true, shiftPressed: true);
+            clientApi.Input.SetHotKeyHandler("veconfig", OnConfigHotkey);
+
+            // Register client chat command for config
+            clientApi.RegisterCommand("veconfig", "Opens VintageEssentials configuration", "", (id, args) =>
+            {
+                configDialog.TryOpen();
+            });
+
             // Check for keybind conflicts on player join
             clientApi.Event.PlayerEntitySpawn += OnPlayerSpawn;
 
-            clientApi.Logger.Notification("VintageEssentials client-side loaded. Press 'R' to open chest radius inventory, 'Shift+S' to sort, 'Ctrl+L' to toggle slot locking.");
+            clientApi.Logger.Notification("VintageEssentials client-side loaded.");
+            clientApi.ShowChatMessage("VintageEssentials loaded! Press Ctrl+Shift+V to open settings or use /veconfig");
         }
 
         private void OnPlayerSpawn(IClientPlayer player)
@@ -69,7 +92,8 @@ namespace VintageEssentials
             {
                 { "chestradius", "R" },
                 { "playerinvsort", "Shift+S" },
-                { "toggleslotlock", "Ctrl+L" }
+                { "toggleslotlock", "Ctrl+L" },
+                { "veconfig", "Ctrl+Shift+V" }
             };
 
             // Check for conflicts with existing game keybinds
@@ -91,6 +115,14 @@ namespace VintageEssentials
         private void OnLockingModeChanged(bool lockingMode)
         {
             // This callback can be used to update UI or other systems when locking mode changes
+            if (lockingMode)
+            {
+                clientApi.ShowChatMessage("Locking mode ON - Click inventory slots to lock/unlock them");
+            }
+            else
+            {
+                clientApi.ShowChatMessage("Locking mode OFF");
+            }
         }
 
         private bool OnChestRadiusHotkey(KeyCombination keyCombination)
@@ -118,12 +150,21 @@ namespace VintageEssentials
             return true;
         }
 
+        private bool OnConfigHotkey(KeyCombination keyCombination)
+        {
+            configDialog.TryOpen();
+            return true;
+        }
+
         public override void Dispose()
         {
             chestRadiusDialog?.Dispose();
             playerSortDialog?.Dispose();
             inventoryLockDialog?.Dispose();
             keybindConflictDialog?.Dispose();
+            configDialog?.Dispose();
+            lockedSlotsHudOverlay?.Dispose();
+            slotClickHandler?.Dispose();
             base.Dispose();
         }
     }
