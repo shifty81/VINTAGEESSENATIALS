@@ -27,17 +27,22 @@ namespace VintageEssentials
             IInventory playerInv = player.InventoryManager.GetOwnInventory(GlobalConstants.characterInvClassName);
             if (playerInv == null) return;
 
-            string playerUid = player.PlayerUID;
-            HashSet<int> lockedSlots = lockedSlotsManager.GetLockedSlots(playerUid);
+            // Get the offhand slot for comparison
+            ItemSlot offhandSlot = player.Entity?.LeftHandItemSlot;
 
-            // Collect all non-empty, non-locked slots and their contents
+            // Collect all non-empty slots and their contents (excluding hotbar and offhand)
             List<ItemSlot> slots = new List<ItemSlot>();
             List<ItemStack> stacks = new List<ItemStack>();
             int slotIndex = 0;
 
+            int slotIndex = 0;
             foreach (ItemSlot slot in playerInv)
             {
-                if (slot != null && !slot.Empty && slot.Itemstack != null)
+                // Skip hotbar slots (0-9) and offhand slot
+                bool isHotbarSlot = slotIndex < 10;
+                bool isOffhandSlot = (offhandSlot != null && slot == offhandSlot);
+                
+                if (!isHotbarSlot && !isOffhandSlot && slot != null && !slot.Empty && slot.Itemstack != null)
                 {
                     // Only add to sort list if slot is not locked
                     if (!lockedSlots.Contains(slotIndex))
@@ -46,6 +51,7 @@ namespace VintageEssentials
                         stacks.Add(slot.Itemstack.Clone());
                     }
                 }
+                
                 slotIndex++;
             }
 
@@ -77,7 +83,7 @@ namespace VintageEssentials
                 }
             }
 
-            capi.ShowChatMessage("Inventory sorted by name (A-Z) - locked slots preserved");
+            capi.ShowChatMessage("Inventory sorted by name (A-Z) - Hotbar and offhand preserved");
         }
 
         public void Dispose()

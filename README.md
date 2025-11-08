@@ -25,6 +25,7 @@ A comprehensive mod for Vintage Story that adds essential commands and quality o
 - **Press `Shift+S`** - Sort your player inventory by name (A-Z)
 - **Locked slots are preserved** - Items in locked slots won't be moved during sorting
 - Quick and convenient organization
+- **Preserves hotbar and offhand** - Your hotbar (slots 1-10) and offhand items remain in place
 
 ### Inventory Slot Locking (NEW!)
 
@@ -200,25 +201,8 @@ The mod will find a safe landing spot at ground level.
 ### Sorting Your Inventory
 
 1. Press `Shift+S` to sort your player inventory by name (A-Z)
-2. Items in locked slots will remain in their original positions
-3. All other items will be organized alphabetically for easy access
-
-### Locking Inventory Slots
-
-1. Press `Ctrl+L` to enter slot locking mode
-2. Open your inventory (press `E`)
-3. Click on any inventory slot to lock or unlock it
-4. You can lock up to 10 slots by default (configurable in settings)
-5. Locked slots display a yellow diagonal line overlay
-6. Press `Ctrl+L` again to exit slot locking mode
-7. Locked slots are saved and will persist across game sessions
-
-### Configuring the Mod
-
-1. Press `Ctrl+Shift+V` or type `/veconfig` in chat
-2. Adjust the maximum number of locked slots (1-20)
-3. View all keybind information
-4. Click Save to apply changes
+2. Items will be organized alphabetically for easy access
+3. Your hotbar (slots 1-10) and offhand items will remain in place during sorting
 
 
 ## Data Storage
