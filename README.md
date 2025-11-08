@@ -24,6 +24,7 @@ A comprehensive mod for Vintage Story that adds essential commands and quality o
 
 - **Press `Shift+S`** - Sort your player inventory by name (A-Z)
 - Quick and convenient organization
+- **Preserves hotbar and offhand** - Your hotbar (slots 1-10) and offhand items remain in place
 
 ### Stack Size Increases
 
@@ -182,6 +183,7 @@ The mod will find a safe landing spot at ground level.
 
 1. Press `Shift+S` to sort your player inventory by name (A-Z)
 2. Items will be organized alphabetically for easy access
+3. Your hotbar (slots 1-10) and offhand items will remain in place during sorting
 
 
 ## Data Storage

@@ -25,17 +25,27 @@ namespace VintageEssentials
             IInventory playerInv = player.InventoryManager.GetOwnInventory(GlobalConstants.characterInvClassName);
             if (playerInv == null) return;
 
-            // Collect all non-empty slots and their contents
+            // Get the offhand slot for comparison
+            ItemSlot offhandSlot = player.Entity?.LeftHandItemSlot;
+
+            // Collect all non-empty slots and their contents (excluding hotbar and offhand)
             List<ItemSlot> slots = new List<ItemSlot>();
             List<ItemStack> stacks = new List<ItemStack>();
 
+            int slotIndex = 0;
             foreach (ItemSlot slot in playerInv)
             {
-                if (slot != null && !slot.Empty && slot.Itemstack != null)
+                // Skip hotbar slots (0-9) and offhand slot
+                bool isHotbarSlot = slotIndex < 10;
+                bool isOffhandSlot = (offhandSlot != null && slot == offhandSlot);
+                
+                if (!isHotbarSlot && !isOffhandSlot && slot != null && !slot.Empty && slot.Itemstack != null)
                 {
                     slots.Add(slot);
                     stacks.Add(slot.Itemstack.Clone());
                 }
+                
+                slotIndex++;
             }
 
             if (stacks.Count == 0)
@@ -66,7 +76,7 @@ namespace VintageEssentials
                 }
             }
 
-            capi.ShowChatMessage("Inventory sorted by name (A-Z)");
+            capi.ShowChatMessage("Inventory sorted by name (A-Z) - Hotbar and offhand preserved");
         }
 
         public void Dispose()
