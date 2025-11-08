@@ -42,19 +42,16 @@ namespace VintageEssentials
 
             capi.World.BlockAccessor.WalkBlocks(minPos, maxPos, (block, x, y, z) =>
             {
-                if (block?.BlockEntityClass != null)
+                BlockPos pos = new BlockPos(x, y, z);
+                BlockEntity be = capi.World.BlockAccessor.GetBlockEntity(pos);
+                if (be is BlockEntityContainer container && container.Inventory != null)
                 {
-                    BlockPos pos = new BlockPos(x, y, z);
-                    BlockEntity be = capi.World.BlockAccessor.GetBlockEntity(pos);
-                    if (be is BlockEntityContainer container && container.Inventory != null)
+                    nearbyContainers.Add(container);
+                    foreach (ItemSlot slot in container.Inventory)
                     {
-                        nearbyContainers.Add(container);
-                        foreach (ItemSlot slot in container.Inventory)
+                        if (slot != null && !slot.Empty)
                         {
-                            if (slot != null && !slot.Empty)
-                            {
-                                allSlots.Add(slot);
-                            }
+                            allSlots.Add(slot);
                         }
                     }
                 }
