@@ -10,7 +10,6 @@ namespace VintageEssentials
     public class PlayerInventorySortDialog
     {
         private ICoreClientAPI capi;
-        private int sortMode = 0; // 0 = by name, 1 = by quantity, 2 = by type
 
         public PlayerInventorySortDialog(ICoreClientAPI capi)
         {
@@ -45,25 +44,8 @@ namespace VintageEssentials
                 return;
             }
 
-            // Store the current mode name before sorting
-            string[] modes = { "Name", "Quantity", "Type" };
-            string currentMode = modes[sortMode];
-
-            // Sort the stacks based on current sort mode
-            switch (sortMode)
-            {
-                case 0: // Sort by name
-                    stacks = stacks.OrderBy(stack => stack.GetName()).ToList();
-                    break;
-                case 1: // Sort by quantity
-                    stacks = stacks.OrderByDescending(stack => stack.StackSize).ToList();
-                    break;
-                case 2: // Sort by type (collectible type and code)
-                    stacks = stacks.OrderBy(stack => stack.Collectible.Code.Domain)
-                                   .ThenBy(stack => stack.Collectible.Code.Path)
-                                   .ToList();
-                    break;
-            }
+            // Sort by name A-Z
+            stacks = stacks.OrderBy(stack => stack.GetName()).ToList();
 
             // Clear the original slots
             foreach (ItemSlot slot in slots)
@@ -84,10 +66,7 @@ namespace VintageEssentials
                 }
             }
 
-            // Cycle sort mode for next time
-            sortMode = (sortMode + 1) % 3;
-            string nextMode = modes[sortMode];
-            capi.ShowChatMessage($"Inventory sorted by {currentMode}. Next sort: {nextMode}");
+            capi.ShowChatMessage("Inventory sorted by name (A-Z)");
         }
 
         public void Dispose()

@@ -14,16 +14,15 @@ A comprehensive mod for Vintage Story that adds essential commands and quality o
 
 - **Press `R`** - Opens a special inventory dialog showing all items in chests within 15 blocks
 - **Searchable** - Type to filter items by name
-- **Sortable** - Cycle through sort modes (none, name, quantity)
+- **Sortable** - Toggle sorting by name (A-Z)
 - **Scrollable Grid** - View all items in an organized grid layout
-- **Deposit All** - Quickly move items from your inventory to nearby chests
+- **Deposit All** - Quickly move matching items from your inventory to nearby chests (only deposits items that already exist in storage)
 - **Take All** - Pull items from nearby chests into your inventory
 - Integrates seamlessly with the game's inventory system
 
 ### Player Inventory Sorting
 
-- **Press `Shift+S`** - Sort your player inventory
-- Cycles through sorting modes: Name → Quantity → Type
+- **Press `Shift+S`** - Sort your player inventory by name (A-Z)
 - Quick and convenient organization
 
 ### Stack Size Increases
@@ -174,16 +173,16 @@ The mod will find a safe landing spot at ground level.
 1. Stand near your storage area (chests within 15 blocks)
 2. Press `R` to open the Chest Radius Inventory
 3. Use the search box to find specific items
-4. Click "Sort" to cycle through sorting modes
-5. Use "Deposit All" to move items from your inventory to chests
+4. Click "Sort" to toggle sorting by name (A-Z)
+5. Use "Deposit All" to move matching items from your inventory to chests (only items that already exist in storage)
 6. Use "Take All" to retrieve items from chests to your inventory
 7. Scroll through the grid to see all available items
 
 ### Sorting Your Inventory
 
-1. Open your player inventory
-2. Press `Shift+S` to sort
-3. Press again to cycle through different sort modes (Name → Quantity → Type)
+1. Press `Shift+S` to sort your player inventory by name (A-Z)
+2. Items will be organized alphabetically for easy access
+
 
 ## Data Storage
 

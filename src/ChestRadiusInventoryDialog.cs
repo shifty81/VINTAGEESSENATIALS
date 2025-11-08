@@ -17,7 +17,7 @@ namespace VintageEssentials
         private List<ItemSlot> allSlots = new List<ItemSlot>();
         private List<ItemSlot> filteredSlots = new List<ItemSlot>();
         private string searchText = "";
-        private int sortMode = 0; // 0 = none, 1 = name, 2 = quantity
+        private bool isSorted = false;
         private const int RADIUS = 15;
         private const int SLOTS_PER_ROW = 8;
         private const int VISIBLE_ROWS = 6;
@@ -72,13 +72,10 @@ namespace VintageEssentials
                 return itemName.Contains(searchText.ToLower());
             }).ToList();
 
-            if (sortMode == 1) // Sort by name
+            // Sort by name A-Z if sorting is enabled
+            if (isSorted)
             {
                 filteredSlots = filteredSlots.OrderBy(slot => slot.Itemstack?.GetName() ?? "").ToList();
-            }
-            else if (sortMode == 2) // Sort by quantity
-            {
-                filteredSlots = filteredSlots.OrderByDescending(slot => slot.StackSize).ToList();
             }
 
             scrollOffset = Math.Min(scrollOffset, Math.Max(0, (filteredSlots.Count / SLOTS_PER_ROW) - VISIBLE_ROWS));
@@ -189,9 +186,8 @@ namespace VintageEssentials
 
         private bool OnSortClicked()
         {
-            sortMode = (sortMode + 1) % 3;
-            string[] modes = { "None", "Name", "Quantity" };
-            capi.ShowChatMessage($"Sort mode: {modes[sortMode]}");
+            isSorted = !isSorted;
+            capi.ShowChatMessage(isSorted ? "Sorting enabled (A-Z)" : "Sorting disabled");
             ApplyFiltersAndSort();
             return true;
         }
@@ -206,10 +202,31 @@ namespace VintageEssentials
             if (playerInv == null) return true;
 
             int deposited = 0;
+            
+            // Iterate through player inventory slots
             foreach (var slot in playerInv)
             {
                 if (slot == null || slot.Empty) continue;
                 
+                // Check if this item type already exists in any nearby container
+                bool itemExistsInStorage = false;
+                foreach (var container in nearbyContainers)
+                {
+                    foreach (var storageSlot in container.Inventory)
+                    {
+                        if (!storageSlot.Empty && storageSlot.Itemstack.Equals(capi.World, slot.Itemstack, GlobalConstants.IgnoredStackAttributes))
+                        {
+                            itemExistsInStorage = true;
+                            break;
+                        }
+                    }
+                    if (itemExistsInStorage) break;
+                }
+                
+                // Only deposit if this item type exists in storage
+                if (!itemExistsInStorage) continue;
+                
+                // Try to deposit the item into containers
                 foreach (var container in nearbyContainers)
                 {
                     foreach (var targetSlot in container.Inventory)
@@ -230,7 +247,7 @@ namespace VintageEssentials
                 }
             }
 
-            capi.ShowChatMessage($"Deposited {deposited} items");
+            capi.ShowChatMessage($"Deposited {deposited} matching items");
             RefreshContainers();
             return true;
         }
