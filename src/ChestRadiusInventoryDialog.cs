@@ -93,7 +93,6 @@ namespace VintageEssentials
         private void ComposeDialog()
         {
             double elemWidth = 500;
-            double elemHeight = 600;
 
             ElementBounds dialogBounds = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.CenterMiddle);
             ElementBounds bgBounds = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
