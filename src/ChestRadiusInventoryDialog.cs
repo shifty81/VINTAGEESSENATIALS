@@ -22,10 +22,12 @@ namespace VintageEssentials
         private const int SLOTS_PER_ROW = 8;
         private const int VISIBLE_ROWS = 6;
         private int scrollOffset = 0;
+        private DummyInventory displayInventory;
         
         public ChestRadiusInventoryDialog(ICoreClientAPI capi) : base("Nearby Chests", capi)
         {
             this.capi = capi;
+            displayInventory = new DummyInventory(capi);
         }
 
         public void RefreshContainers()
@@ -99,14 +101,19 @@ namespace VintageEssentials
             ElementBounds depositButtonBounds = ElementBounds.Fixed(160, 65, 150, 30);
             ElementBounds takeAllButtonBounds = ElementBounds.Fixed(320, 65, 150, 30);
             
-            ElementBounds gridBounds = ElementBounds.Fixed(0, 105, elemWidth - 20, 400);
-            ElementBounds scrollbarBounds = ElementBounds.Fixed(elemWidth - 30, 105, 20, 400);
+            // Create bounds for the item slot grid
+            double slotSize = 60;
+            double gridWidth = SLOTS_PER_ROW * slotSize;
+            double gridHeight = VISIBLE_ROWS * slotSize;
+            ElementBounds slotBounds = ElementStdBounds.SlotGrid(EnumDialogArea.None, 10, 105, SLOTS_PER_ROW, VISIBLE_ROWS);
+            ElementBounds gridBounds = ElementBounds.Fixed(0, 105, gridWidth, gridHeight);
+            ElementBounds scrollbarBounds = ElementBounds.Fixed(gridWidth + 10, 105, 20, gridHeight);
 
-            ElementBounds closeButtonBounds = ElementBounds.Fixed(0, 520, 100, 30);
+            ElementBounds closeButtonBounds = ElementBounds.Fixed(0, gridHeight + 115, 100, 30);
 
             bgBounds.BothSizing = ElementSizing.FitToChildren;
             bgBounds.WithChildren(searchBounds, sortButtonBounds, depositButtonBounds, takeAllButtonBounds, 
-                                  gridBounds, scrollbarBounds, closeButtonBounds);
+                                  slotBounds, scrollbarBounds, closeButtonBounds);
 
             SingleComposer = capi.Gui.CreateCompo("chestradius", dialogBounds)
                 .AddShadedDialogBG(bgBounds)
@@ -118,7 +125,7 @@ namespace VintageEssentials
                     .AddSmallButton("Sort", OnSortClicked, sortButtonBounds, EnumButtonStyle.Normal, "sortbtn")
                     .AddSmallButton("Deposit All", OnDepositClicked, depositButtonBounds, EnumButtonStyle.Normal, "depositbtn")
                     .AddSmallButton("Take All", OnTakeAllClicked, takeAllButtonBounds, EnumButtonStyle.Normal, "takebtn")
-                    .AddInset(gridBounds, 2)
+                    .AddItemSlotGrid(displayInventory, SendInvPacket, SLOTS_PER_ROW, slotBounds, "slotgrid")
                     .AddVerticalScrollbar(OnScroll, scrollbarBounds, "scrollbar")
                     .AddSmallButton("Close", OnCloseClicked, closeButtonBounds)
                 .EndChildElements()
@@ -130,14 +137,38 @@ namespace VintageEssentials
             RenderItemGrid();
         }
 
+        private void SendInvPacket(object packet)
+        {
+            // Handle inventory packet if needed for client-server sync
+        }
+
         private void RenderItemGrid()
         {
-            var composer = SingleComposer;
-            if (composer == null) return;
+            if (displayInventory == null) return;
 
-            // Clear any existing item slot elements
-            // Note: In a production mod, you'd want to use a custom render element for better performance
-            // This is a simplified approach
+            // Resize the display inventory to show the visible slots
+            int visibleSlots = SLOTS_PER_ROW * VISIBLE_ROWS;
+            displayInventory.ResizeSlots(visibleSlots);
+
+            // Calculate which items to show based on scroll offset
+            int startIndex = scrollOffset * SLOTS_PER_ROW;
+            
+            // Populate the display inventory with filtered slots
+            for (int i = 0; i < visibleSlots; i++)
+            {
+                int sourceIndex = startIndex + i;
+                if (sourceIndex < filteredSlots.Count)
+                {
+                    // Copy the itemstack to the display slot
+                    displayInventory[i].Itemstack = filteredSlots[sourceIndex].Itemstack?.Clone();
+                }
+                else
+                {
+                    // Clear empty slots
+                    displayInventory[i].Itemstack = null;
+                }
+                displayInventory[i].MarkDirty();
+            }
         }
 
         private void UpdateScrollbar()
@@ -262,5 +293,67 @@ namespace VintageEssentials
         }
 
         public override string ToggleKeyCombinationCode => "chestradius";
+    }
+
+    // Helper class to create a dummy inventory for display purposes
+    public class DummyInventory : InventoryBase, IInventory
+    {
+        private ItemSlot[] slots;
+
+        public DummyInventory(ICoreAPI api) : base("chestradius-dummy", api)
+        {
+            slots = new ItemSlot[0];
+        }
+
+        public override int Count => slots.Length;
+
+        public override ItemSlot this[int slotId]
+        {
+            get
+            {
+                if (slotId < 0 || slotId >= slots.Length) return null;
+                return slots[slotId];
+            }
+            set
+            {
+                if (slotId < 0 || slotId >= slots.Length) return;
+                slots[slotId] = value;
+            }
+        }
+
+        public void ResizeSlots(int count)
+        {
+            ItemSlot[] newSlots = new ItemSlot[count];
+            for (int i = 0; i < count; i++)
+            {
+                if (i < slots.Length && slots[i] != null)
+                {
+                    newSlots[i] = slots[i];
+                }
+                else
+                {
+                    newSlots[i] = new DummySlot(this);
+                }
+            }
+            slots = newSlots;
+        }
+
+        public override void FromTreeAttributes(ITreeAttribute tree)
+        {
+            // Not needed for display-only inventory
+        }
+
+        public override void ToTreeAttributes(ITreeAttribute tree)
+        {
+            // Not needed for display-only inventory
+        }
+    }
+
+    // Helper class for dummy slots
+    public class DummySlot : ItemSlot
+    {
+        public DummySlot(InventoryBase inventory) : base(inventory)
+        {
+        }
     }
 }
