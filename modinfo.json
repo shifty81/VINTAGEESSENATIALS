@@ -1,0 +1,14 @@
+{
+  "type": "code",
+  "modid": "vintageessentials",
+  "name": "Vintage Essentials",
+  "author": "shifty81",
+  "description": "Essential server-side commands and quality of life improvements including /home, /sethome, /rtp commands and increased stack sizes",
+  "version": "1.0.0",
+  "dependency": {
+    "game": "1.19.0"
+  },
+  "side": "Universal",
+  "requiredOnClient": false,
+  "requiredOnServer": true
+}

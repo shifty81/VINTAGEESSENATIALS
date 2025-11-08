@@ -1,0 +1,26 @@
+[
+  {
+    "op": "replace",
+    "path": "/entityclass",
+    "value": "GenericContainer",
+    "file": "game:blocktypes/wood/chest-*.json"
+  },
+  {
+    "op": "replace",
+    "path": "/attributes/quantitySlots",
+    "value": 32,
+    "file": "game:blocktypes/wood/chest-*.json"
+  },
+  {
+    "op": "replace",
+    "path": "/attributes/quantitySlots",
+    "value": 24,
+    "file": "game:blocktypes/clay/storagevessel-*.json"
+  },
+  {
+    "op": "replace",
+    "path": "/attributes/quantitySlots",
+    "value": 48,
+    "file": "game:blocktypes/wood/crate.json"
+  }
+]

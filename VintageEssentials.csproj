@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <VINTAGE_STORY Condition="$(VINTAGE_STORY) == '' And Exists('C:\Program Files\Vintagestory')">C:\Program Files\Vintagestory</VINTAGE_STORY>
+    <VINTAGE_STORY Condition="$(VINTAGE_STORY) == '' And Exists('/usr/share/vintagestory')">usr/share/vintagestory</VINTAGE_STORY>
+    <VINTAGE_STORY Condition="$(VINTAGE_STORY) == '' And Exists('$(HOME)/.local/share/Vintagestory')">/$(HOME)/.local/share/Vintagestory</VINTAGE_STORY>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="VintagestoryAPI">
+      <HintPath>$(VINTAGE_STORY)/VintagestoryAPI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="VSEssentials">
+      <HintPath>$(VINTAGE_STORY)/Mods/VSEssentials.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="VSSurvivalMod">
+      <HintPath>$(VINTAGE_STORY)/Mods/VSSurvivalMod.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="assets/**" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="modinfo.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <Target Name="Package" AfterTargets="PostBuildEvent">
+    <ZipDirectory SourceDirectory="$(TargetDir)" DestinationFile="$(TargetDir)../VintageEssentials.zip" Overwrite="true" />
+  </Target>
+
+</Project>
