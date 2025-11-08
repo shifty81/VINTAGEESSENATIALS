@@ -45,6 +45,10 @@ namespace VintageEssentials
                 return;
             }
 
+            // Store the current mode name before sorting
+            string[] modes = { "Name", "Quantity", "Type" };
+            string currentMode = modes[sortMode];
+
             // Sort the stacks based on current sort mode
             switch (sortMode)
             {
@@ -80,10 +84,10 @@ namespace VintageEssentials
                 }
             }
 
-            // Cycle sort mode
+            // Cycle sort mode for next time
             sortMode = (sortMode + 1) % 3;
-            string[] modes = { "Name", "Quantity", "Type" };
-            capi.ShowChatMessage($"Inventory sorted by {modes[(sortMode + 2) % 3]}. Next sort: {modes[sortMode]}");
+            string nextMode = modes[sortMode];
+            capi.ShowChatMessage($"Inventory sorted by {currentMode}. Next sort: {nextMode}");
         }
 
         public void Dispose()

@@ -199,12 +199,16 @@ namespace VintageEssentials
         private bool OnDepositClicked()
         {
             IPlayer player = capi.World.Player;
-            if (player?.InventoryManager?.CurrentHoveredSlot == null) return true;
+            if (player?.InventoryManager == null) return true;
+
+            // Get the player's main inventory
+            IInventory playerInv = player.InventoryManager.GetOwnInventory(GlobalConstants.characterInvClassName);
+            if (playerInv == null) return true;
 
             int deposited = 0;
-            foreach (var slot in player.InventoryManager.OpenedInventories.SelectMany(inv => inv))
+            foreach (var slot in playerInv)
             {
-                if (slot.Empty) continue;
+                if (slot == null || slot.Empty) continue;
                 
                 foreach (var container in nearbyContainers)
                 {
@@ -234,6 +238,12 @@ namespace VintageEssentials
         private bool OnTakeAllClicked()
         {
             IPlayer player = capi.World.Player;
+            if (player?.InventoryManager == null) return true;
+
+            // Get the player's main inventory
+            IInventory playerInv = player.InventoryManager.GetOwnInventory(GlobalConstants.characterInvClassName);
+            if (playerInv == null) return true;
+
             int taken = 0;
 
             foreach (var container in nearbyContainers)
@@ -242,24 +252,23 @@ namespace VintageEssentials
                 {
                     if (sourceSlot.Empty) continue;
 
-                    foreach (var inv in player.InventoryManager.OpenedInventories)
+                    foreach (var targetSlot in playerInv)
                     {
-                        foreach (var targetSlot in inv)
+                        if (targetSlot == null) continue;
+                        
+                        if (targetSlot.Empty || targetSlot.Itemstack.Equals(capi.World, sourceSlot.Itemstack, GlobalConstants.IgnoredStackAttributes))
                         {
-                            if (targetSlot.Empty || targetSlot.Itemstack.Equals(capi.World, sourceSlot.Itemstack, GlobalConstants.IgnoredStackAttributes))
+                            int moved = sourceSlot.TryPutInto(capi.World, targetSlot);
+                            if (moved > 0)
                             {
-                                int moved = sourceSlot.TryPutInto(capi.World, targetSlot);
-                                if (moved > 0)
-                                {
-                                    taken += moved;
-                                    sourceSlot.MarkDirty();
-                                    targetSlot.MarkDirty();
-                                    if (sourceSlot.Empty) break;
-                                }
+                                taken += moved;
+                                sourceSlot.MarkDirty();
+                                targetSlot.MarkDirty();
+                                if (sourceSlot.Empty) break;
                             }
                         }
-                        if (sourceSlot.Empty) break;
                     }
+                    if (sourceSlot.Empty) continue;
                 }
             }
 
