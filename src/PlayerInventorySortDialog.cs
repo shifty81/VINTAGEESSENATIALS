@@ -10,10 +10,12 @@ namespace VintageEssentials
     public class PlayerInventorySortDialog
     {
         private ICoreClientAPI capi;
+        private LockedSlotsManager lockedSlotsManager;
 
-        public PlayerInventorySortDialog(ICoreClientAPI capi)
+        public PlayerInventorySortDialog(ICoreClientAPI capi, LockedSlotsManager lockedSlotsManager)
         {
             this.capi = capi;
+            this.lockedSlotsManager = lockedSlotsManager;
         }
 
         public void SortPlayerInventory()
@@ -25,17 +27,26 @@ namespace VintageEssentials
             IInventory playerInv = player.InventoryManager.GetOwnInventory(GlobalConstants.characterInvClassName);
             if (playerInv == null) return;
 
-            // Collect all non-empty slots and their contents
+            string playerUid = player.PlayerUID;
+            HashSet<int> lockedSlots = lockedSlotsManager.GetLockedSlots(playerUid);
+
+            // Collect all non-empty, non-locked slots and their contents
             List<ItemSlot> slots = new List<ItemSlot>();
             List<ItemStack> stacks = new List<ItemStack>();
+            int slotIndex = 0;
 
             foreach (ItemSlot slot in playerInv)
             {
                 if (slot != null && !slot.Empty && slot.Itemstack != null)
                 {
-                    slots.Add(slot);
-                    stacks.Add(slot.Itemstack.Clone());
+                    // Only add to sort list if slot is not locked
+                    if (!lockedSlots.Contains(slotIndex))
+                    {
+                        slots.Add(slot);
+                        stacks.Add(slot.Itemstack.Clone());
+                    }
                 }
+                slotIndex++;
             }
 
             if (stacks.Count == 0)
@@ -47,26 +58,26 @@ namespace VintageEssentials
             // Sort by name A-Z
             stacks = stacks.OrderBy(stack => stack.GetName()).ToList();
 
-            // Clear the original slots
+            // Clear the original non-locked slots
             foreach (ItemSlot slot in slots)
             {
                 slot.Itemstack = null;
                 slot.MarkDirty();
             }
 
-            // Put sorted items back
-            int stackIndex = 0;
+            // Put sorted items back into non-locked slots
+            int stackIdx = 0;
             foreach (ItemSlot slot in slots)
             {
-                if (stackIndex < stacks.Count)
+                if (stackIdx < stacks.Count)
                 {
-                    slot.Itemstack = stacks[stackIndex];
+                    slot.Itemstack = stacks[stackIdx];
                     slot.MarkDirty();
-                    stackIndex++;
+                    stackIdx++;
                 }
             }
 
-            capi.ShowChatMessage("Inventory sorted by name (A-Z)");
+            capi.ShowChatMessage("Inventory sorted by name (A-Z) - locked slots preserved");
         }
 
         public void Dispose()
