@@ -9,8 +9,8 @@
 
   <PropertyGroup>
     <VINTAGE_STORY Condition="$(VINTAGE_STORY) == '' And Exists('C:\Program Files\Vintagestory')">C:\Program Files\Vintagestory</VINTAGE_STORY>
-    <VINTAGE_STORY Condition="$(VINTAGE_STORY) == '' And Exists('/usr/share/vintagestory')">usr/share/vintagestory</VINTAGE_STORY>
-    <VINTAGE_STORY Condition="$(VINTAGE_STORY) == '' And Exists('$(HOME)/.local/share/Vintagestory')">/$(HOME)/.local/share/Vintagestory</VINTAGE_STORY>
+    <VINTAGE_STORY Condition="$(VINTAGE_STORY) == '' And Exists('/usr/share/vintagestory')">/usr/share/vintagestory</VINTAGE_STORY>
+    <VINTAGE_STORY Condition="$(VINTAGE_STORY) == '' And Exists('$(HOME)/.local/share/Vintagestory')">$(HOME)/.local/share/Vintagestory</VINTAGE_STORY>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,6 +32,12 @@
     <Content Include="assets/**" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="modinfo.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+
+  <Target Name="CheckVintageStoryPath" BeforeTargets="BeforeBuild">
+    <Error Condition="'$(VINTAGE_STORY)' == ''" Text="VINTAGE_STORY environment variable is not set and Vintage Story was not found in default locations.%0APlease set the VINTAGE_STORY environment variable to your Vintage Story installation directory.%0A%0AWindows (PowerShell): $env:VINTAGE_STORY = 'C:\Path\To\Vintagestory'%0AWindows (CMD): set VINTAGE_STORY=C:\Path\To\Vintagestory%0ALinux/macOS: export VINTAGE_STORY='/path/to/Vintagestory'%0A%0ACommon installation paths:%0A- Windows: C:\Program Files\Vintagestory%0A- Linux: /usr/share/vintagestory or ~/.local/share/Vintagestory%0A- macOS: ~/Library/Application Support/Vintagestory" />
+    <Error Condition="'$(VINTAGE_STORY)' != '' And !Exists('$(VINTAGE_STORY)/VintagestoryAPI.dll')" Text="VintagestoryAPI.dll not found at: $(VINTAGE_STORY)/VintagestoryAPI.dll%0APlease verify that VINTAGE_STORY points to a valid Vintage Story installation directory." />
+    <Message Condition="'$(VINTAGE_STORY)' != ''" Text="Using Vintage Story installation at: $(VINTAGE_STORY)" Importance="high" />
+  </Target>
 
   <Target Name="Package" AfterTargets="PostBuildEvent">
     <ZipDirectory SourceDirectory="$(TargetDir)" DestinationFile="$(TargetDir)../VintageEssentials.zip" Overwrite="true" />
