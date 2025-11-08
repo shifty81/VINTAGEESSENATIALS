@@ -50,17 +50,106 @@ You can rebind these keys in the game's Controls settings.
 
 ## Building
 
-Requirements:
-- .NET 7.0 SDK or later
-- Vintage Story installed
+### Requirements
+- .NET 7.0 SDK or later ([Download here](https://dotnet.microsoft.com/download))
+- Vintage Story installed ([Get it here](https://www.vintagestory.at/))
 
-Set the `VINTAGE_STORY` environment variable to your Vintage Story installation path, then run:
+### Quick Build
+
+If your Vintage Story installation is in one of these default locations, you can simply run:
 
 ```bash
 dotnet build
 ```
 
-The compiled mod will be in `bin/Release` or `bin/Debug` as `VintageEssentials.zip`.
+The project will automatically detect Vintage Story in:
+- Windows: `C:\Program Files\Vintagestory`
+- Linux: `/usr/share/vintagestory` or `~/.local/share/Vintagestory`
+
+The compiled mod will be in `bin/Debug/VintageEssentials.zip`.
+
+### Custom Installation Path
+
+If Vintage Story is installed in a different location, set the `VINTAGE_STORY` environment variable:
+
+**Windows (PowerShell):**
+```powershell
+$env:VINTAGE_STORY = "C:\Path\To\Vintagestory"
+dotnet build
+```
+
+**Windows (Command Prompt):**
+```cmd
+set VINTAGE_STORY=C:\Path\To\Vintagestory
+dotnet build
+```
+
+**Linux/macOS (Bash):**
+```bash
+export VINTAGE_STORY="/path/to/Vintagestory"
+dotnet build
+```
+
+Or set it inline:
+```bash
+VINTAGE_STORY="/path/to/Vintagestory" dotnet build
+```
+
+### Build Configurations
+
+**Debug Build (default):**
+```bash
+dotnet build
+```
+Output: `bin/Debug/VintageEssentials.zip`
+
+**Release Build (optimized):**
+```bash
+dotnet build -c Release
+```
+Output: `bin/Release/VintageEssentials.zip`
+
+### Finding Your Vintage Story Installation
+
+**Windows:**
+- Default: `C:\Program Files\Vintagestory`
+- Steam: Right-click Vintage Story in Steam → Manage → Browse local files
+
+**Linux:**
+- System install: `/usr/share/vintagestory`
+- User install: `~/.local/share/Vintagestory`
+- Steam: `~/.steam/steam/steamapps/common/VintageStory`
+
+**macOS:**
+- Default: `~/Library/Application Support/Vintagestory`
+- Steam: `~/Library/Application Support/Steam/steamapps/common/VintageStory`
+
+### Testing Your Build
+
+1. Build the mod using one of the methods above
+2. Locate the generated `VintageEssentials.zip` file in `bin/Debug/` or `bin/Release/`
+3. Copy it to your Vintage Story mods folder:
+   - Windows: `%APPDATA%\VintagestoryData\Mods`
+   - Linux: `~/.config/VintagestoryData/Mods`
+   - macOS: `~/Library/Application Support/VintagestoryData/Mods`
+4. Launch Vintage Story
+5. Check the Mod Manager (Esc → Mod Manager) to verify the mod loaded successfully
+
+### Troubleshooting
+
+**Error: "Could not find a part of the path"**
+- The `VINTAGE_STORY` environment variable is not set correctly
+- Verify your Vintage Story installation path exists
+- Check that `VintagestoryAPI.dll` exists in that directory
+
+**Error: "The specified framework 'Microsoft.NETCore.App', version '7.0.0' was not found"**
+- Install .NET 7.0 SDK or later from https://dotnet.microsoft.com/download
+- Verify installation with `dotnet --version`
+
+**Build succeeds but mod doesn't work in-game:**
+- Ensure you copied the mod to the correct mods folder
+- Check the Vintage Story logs for errors (found in the `Logs` folder next to `Mods`)
+- Make sure you're using a compatible Vintage Story version (1.19.0 or later)
 
 ## Usage
 
