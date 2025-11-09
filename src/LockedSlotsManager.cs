@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using Vintagestory.API.Common;
+using Vintagestory.API.Server;
 
 namespace VintageEssentials
 {
