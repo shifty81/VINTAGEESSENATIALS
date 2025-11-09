@@ -575,7 +575,7 @@ namespace VintageEssentials
         }
 
         // Override to handle transferring from this slot to another
-        public override int TryPutInto(IWorldAccessor world, ItemSlot sinkSlot, ref ItemStackMoveOperation op)
+        public override int TryPutInto(IWorldAccessor world, ItemSlot sinkSlot)
         {
             if (this.Empty || dialog == null) return 0;
 
@@ -584,7 +584,7 @@ namespace VintageEssentials
             if (success)
             {
                 // Calculate how much was transferred
-                int transferred = Math.Min(this.StackSize, op?.RequestedQuantity ?? this.StackSize);
+                int transferred = Math.Min(this.StackSize, this.StackSize);
                 
                 // Update the display - the actual work was done in TryTakeFromDisplaySlot
                 // Don't modify this slot directly, as it's just a display copy
@@ -596,9 +596,9 @@ namespace VintageEssentials
         }
 
         // Override TryFlipWith to handle picking up items with mouse
-        public override void TryFlipWith(ItemSlot targetSlot)
+        public override bool TryFlipWith(ItemSlot targetSlot)
         {
-            if (this.Empty || dialog == null) return;
+            if (this.Empty || dialog == null) return false;
 
             // When clicking (not shift-clicking) to pick up an item
             if (targetSlot.Empty)
@@ -607,10 +607,11 @@ namespace VintageEssentials
                 var world = inventory?.Api?.World;
                 if (world != null)
                 {
-                    ItemStackMoveOperation op = new ItemStackMoveOperation(world, EnumMouseButton.Left, 0, EnumMergePriority.AutoMerge, this.StackSize);
-                    dialog.TryTakeFromDisplaySlot(displaySlotId, targetSlot);
+                    return dialog.TryTakeFromDisplaySlot(displaySlotId, targetSlot);
                 }
             }
+            
+            return false;
         }
 
         // Prevent items from being placed directly into display slots
