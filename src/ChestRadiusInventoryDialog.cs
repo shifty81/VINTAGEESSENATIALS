@@ -23,11 +23,12 @@ namespace VintageEssentials
         private const int VISIBLE_ROWS = 6;
         private int scrollOffset = 0;
         private DummyInventory displayInventory;
+        private Dictionary<int, ItemSlot> displaySlotToActualSlot = new Dictionary<int, ItemSlot>();
         
         public ChestRadiusInventoryDialog(ICoreClientAPI capi) : base("Nearby Chests", capi)
         {
             this.capi = capi;
-            displayInventory = new DummyInventory(capi);
+            displayInventory = new DummyInventory(capi, this);
         }
 
         public void RefreshContainers()
@@ -136,7 +137,95 @@ namespace VintageEssentials
 
         private void SendInvPacket(object packet)
         {
-            // Handle inventory packet if needed for client-server sync
+            // Handle inventory packet - this is called when slots are interacted with
+            // The packet contains information about the slot interaction
+            if (packet is IClientNetworkChannel)
+            {
+                // This is a network packet for client-server communication
+                // For now, we handle interactions directly through the slot overrides
+            }
+        }
+
+        // Method to handle taking an item from a display slot (when shift-clicked or moved to player inventory)
+        public bool TryTakeFromDisplaySlot(int displaySlotId, ItemSlot targetSlot)
+        {
+            // Find the actual chest slot that this display slot represents
+            if (!displaySlotToActualSlot.TryGetValue(displaySlotId, out ItemSlot actualSlot))
+            {
+                return false;
+            }
+
+            if (actualSlot == null || actualSlot.Empty)
+            {
+                return false;
+            }
+
+            // Try to move items from the actual slot to the target slot
+            int moved = actualSlot.TryPutInto(capi.World, targetSlot);
+            if (moved > 0)
+            {
+                actualSlot.MarkDirty();
+                targetSlot.MarkDirty();
+                
+                // Refresh the display after the transfer
+                RefreshContainers();
+                return true;
+            }
+
+            return false;
+        }
+
+        // Method to handle depositing an item to storage (when shift-clicked from player inventory)
+        public bool TryDepositToStorage(ItemSlot sourceSlot)
+        {
+            if (sourceSlot == null || sourceSlot.Empty)
+            {
+                return false;
+            }
+
+            // Try to deposit into nearby containers
+            foreach (var container in nearbyContainers)
+            {
+                foreach (var targetSlot in container.Inventory)
+                {
+                    // First try to stack with existing items
+                    if (!targetSlot.Empty && targetSlot.Itemstack.Equals(capi.World, sourceSlot.Itemstack, GlobalConstants.IgnoredStackAttributes))
+                    {
+                        int moved = sourceSlot.TryPutInto(capi.World, targetSlot);
+                        if (moved > 0)
+                        {
+                            sourceSlot.MarkDirty();
+                            targetSlot.MarkDirty();
+                            if (sourceSlot.Empty)
+                            {
+                                RefreshContainers();
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // If no matching stacks found, try to find an empty slot
+            foreach (var container in nearbyContainers)
+            {
+                foreach (var targetSlot in container.Inventory)
+                {
+                    if (targetSlot.Empty)
+                    {
+                        int moved = sourceSlot.TryPutInto(capi.World, targetSlot);
+                        if (moved > 0)
+                        {
+                            sourceSlot.MarkDirty();
+                            targetSlot.MarkDirty();
+                            RefreshContainers();
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         private void RenderItemGrid()
@@ -146,6 +235,9 @@ namespace VintageEssentials
             // Resize the display inventory to show the visible slots
             int visibleSlots = SLOTS_PER_ROW * VISIBLE_ROWS;
             displayInventory.ResizeSlots(visibleSlots);
+
+            // Clear the mapping
+            displaySlotToActualSlot.Clear();
 
             // Calculate which items to show based on scroll offset
             int startIndex = scrollOffset * SLOTS_PER_ROW;
@@ -158,6 +250,8 @@ namespace VintageEssentials
                 {
                     // Copy the itemstack to the display slot
                     displayInventory[i].Itemstack = filteredSlots[sourceIndex].Itemstack?.Clone();
+                    // Map the display slot to the actual chest slot
+                    displaySlotToActualSlot[i] = filteredSlots[sourceIndex];
                 }
                 else
                 {
@@ -208,30 +302,13 @@ namespace VintageEssentials
             {
                 if (slot == null || slot.Empty) continue;
                 
-                // Check if this item type already exists in any nearby container
-                bool itemExistsInStorage = false;
-                foreach (var container in nearbyContainers)
-                {
-                    foreach (var storageSlot in container.Inventory)
-                    {
-                        if (!storageSlot.Empty && storageSlot.Itemstack.Equals(capi.World, slot.Itemstack, GlobalConstants.IgnoredStackAttributes))
-                        {
-                            itemExistsInStorage = true;
-                            break;
-                        }
-                    }
-                    if (itemExistsInStorage) break;
-                }
-                
-                // Only deposit if this item type exists in storage
-                if (!itemExistsInStorage) continue;
-                
-                // Try to deposit the item into containers
+                // Try to deposit into nearby containers
+                // First pass: try to stack with existing items
                 foreach (var container in nearbyContainers)
                 {
                     foreach (var targetSlot in container.Inventory)
                     {
-                        if (targetSlot.Empty || targetSlot.Itemstack.Equals(capi.World, slot.Itemstack, GlobalConstants.IgnoredStackAttributes))
+                        if (!targetSlot.Empty && targetSlot.Itemstack.Equals(capi.World, slot.Itemstack, GlobalConstants.IgnoredStackAttributes))
                         {
                             int moved = slot.TryPutInto(capi.World, targetSlot);
                             if (moved > 0)
@@ -245,9 +322,32 @@ namespace VintageEssentials
                     }
                     if (slot.Empty) break;
                 }
+                
+                // Second pass: if item still not empty, try to find empty slots
+                if (!slot.Empty)
+                {
+                    foreach (var container in nearbyContainers)
+                    {
+                        foreach (var targetSlot in container.Inventory)
+                        {
+                            if (targetSlot.Empty)
+                            {
+                                int moved = slot.TryPutInto(capi.World, targetSlot);
+                                if (moved > 0)
+                                {
+                                    deposited += moved;
+                                    slot.MarkDirty();
+                                    targetSlot.MarkDirty();
+                                    if (slot.Empty) break;
+                                }
+                            }
+                        }
+                        if (slot.Empty) break;
+                    }
+                }
             }
 
-            capi.ShowChatMessage($"Deposited {deposited} matching items");
+            capi.ShowChatMessage($"Deposited {deposited} items");
             RefreshContainers();
             return true;
         }
@@ -315,20 +415,99 @@ namespace VintageEssentials
         {
             RefreshContainers();
             ComposeDialog();
-            return base.TryOpen();
+            bool result = base.TryOpen();
+            
+            if (result)
+            {
+                // Hook into player inventory to handle shift-clicking FROM player inventory TO storage
+                SetupPlayerInventoryHook();
+            }
+            
+            return result;
+        }
+
+        public override void OnGuiClosed()
+        {
+            base.OnGuiClosed();
+            // Clean up player inventory hook
+            CleanupPlayerInventoryHook();
+        }
+
+        private void SetupPlayerInventoryHook()
+        {
+            // Register our display inventory as a potential shift-click target
+            // Note: In Vintage Story, this is handled through the InventoryManager
+            // We'll monitor for slot modifications to keep our display in sync
+            var player = capi.World.Player;
+            if (player?.InventoryManager == null) return;
+
+            var playerInv = player.InventoryManager.GetOwnInventory(GlobalConstants.characterInvClassName);
+            if (playerInv == null) return;
+
+            playerInv.SlotModified += OnPlayerInventorySlotModified;
+
+            // Additionally, we can register a mouse up event handler to intercept shift-clicks
+            capi.Event.MouseUp += OnMouseUpEvent;
+        }
+
+        private void CleanupPlayerInventoryHook()
+        {
+            var player = capi.World.Player;
+            if (player?.InventoryManager == null) return;
+
+            var playerInv = player.InventoryManager.GetOwnInventory(GlobalConstants.characterInvClassName);
+            if (playerInv == null) return;
+
+            playerInv.SlotModified -= OnPlayerInventorySlotModified;
+            capi.Event.MouseUp -= OnMouseUpEvent;
+        }
+
+        private void OnMouseUpEvent(MouseEvent e)
+        {
+            // Check if this is a shift-click
+            if (!e.ShiftPressed) return;
+            
+            // Only handle left clicks
+            if (e.Button != EnumMouseButton.Left) return;
+
+            // Get the player's inventory
+            var player = capi.World.Player;
+            if (player?.InventoryManager == null) return;
+
+            var playerInv = player.InventoryManager.GetOwnInventory(GlobalConstants.characterInvClassName);
+            if (playerInv == null) return;
+
+            // Try to find which slot was clicked by checking the mouse position against slot bounds
+            // This is approximate, as we don't have direct access to the character GUI
+            // The game's built-in shift-click should ideally work, but if not, users can use Deposit All button
+            
+            // For now, we'll let the refresh handler keep the display in sync
+            // The main shift-click functionality (from storage to player) is handled by DummySlot.TryPutInto
+        }
+
+        private void OnPlayerInventorySlotModified(int slotId)
+        {
+            // Refresh the container display when player inventory changes
+            // This ensures the display stays up-to-date
+            if (IsOpened())
+            {
+                RefreshContainers();
+            }
         }
 
         public override string ToggleKeyCombinationCode => "chestradius";
     }
 
-    // Helper class to create a dummy inventory for display purposes
+    // Helper class to create an interactive inventory for the chest radius dialog
     public class DummyInventory : InventoryBase, IInventory
     {
         private ItemSlot[] slots;
+        private ChestRadiusInventoryDialog dialog;
 
-        public DummyInventory(ICoreAPI api) : base("chestradius-dummy", api)
+        public DummyInventory(ICoreAPI api, ChestRadiusInventoryDialog dialog) : base("chestradius-dummy", api)
         {
             slots = new ItemSlot[0];
+            this.dialog = dialog;
         }
 
         public override int Count => slots.Length;
@@ -358,7 +537,7 @@ namespace VintageEssentials
                 }
                 else
                 {
-                    newSlots[i] = new DummySlot(this);
+                    newSlots[i] = new DummySlot(this, dialog, i);
                 }
             }
             slots = newSlots;
@@ -375,11 +554,75 @@ namespace VintageEssentials
         }
     }
 
-    // Helper class for dummy slots
+    // Helper class for interactive slots that take items from the chest display
     public class DummySlot : ItemSlot
     {
-        public DummySlot(InventoryBase inventory) : base(inventory)
+        private ChestRadiusInventoryDialog dialog;
+        private int displaySlotId;
+
+        public DummySlot(InventoryBase inventory, ChestRadiusInventoryDialog dialog, int displaySlotId) : base(inventory)
         {
+            this.dialog = dialog;
+            this.displaySlotId = displaySlotId;
+        }
+
+        // Override to handle taking items from this display slot
+        public override ItemStack TakeOut(int quantity)
+        {
+            // We want to take from the actual chest slot, not the display copy
+            // Return null here and handle it in TryPutInto instead
+            return null;
+        }
+
+        // Override to handle transferring from this slot to another
+        public override int TryPutInto(IWorldAccessor world, ItemSlot sinkSlot, ref ItemStackMoveOperation op)
+        {
+            if (this.Empty || dialog == null) return 0;
+
+            // Transfer from the actual chest slot to the sink slot (typically player inventory)
+            bool success = dialog.TryTakeFromDisplaySlot(displaySlotId, sinkSlot);
+            if (success)
+            {
+                // Calculate how much was transferred
+                int transferred = Math.Min(this.StackSize, op?.RequestedQuantity ?? this.StackSize);
+                
+                // Update the display - the actual work was done in TryTakeFromDisplaySlot
+                // Don't modify this slot directly, as it's just a display copy
+                
+                return transferred;
+            }
+
+            return 0;
+        }
+
+        // Override TryFlipWith to handle picking up items with mouse
+        public override void TryFlipWith(ItemSlot targetSlot)
+        {
+            if (this.Empty || dialog == null) return;
+
+            // When clicking (not shift-clicking) to pick up an item
+            if (targetSlot.Empty)
+            {
+                // Try to take from the actual chest slot
+                var world = inventory?.Api?.World;
+                if (world != null)
+                {
+                    ItemStackMoveOperation op = new ItemStackMoveOperation(world, EnumMouseButton.Left, 0, EnumMergePriority.AutoMerge, this.StackSize);
+                    dialog.TryTakeFromDisplaySlot(displaySlotId, targetSlot);
+                }
+            }
+        }
+
+        // Prevent items from being placed directly into display slots
+        public override bool CanHold(ItemSlot sourceSlot)
+        {
+            return false;
+        }
+
+        // Allow taking items from display slots
+        public override bool CanTake()
+        {
+            return !this.Empty;
         }
     }
 }

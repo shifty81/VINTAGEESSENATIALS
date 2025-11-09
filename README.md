@@ -16,7 +16,8 @@ A comprehensive mod for Vintage Story that adds essential commands and quality o
 - **Searchable** - Type to filter items by name
 - **Sortable** - Toggle sorting by name (A-Z)
 - **Scrollable Grid** - View all items in an organized grid layout
-- **Deposit All** - Quickly move matching items from your inventory to nearby chests (only deposits items that already exist in storage)
+- **Shift-click support** - Shift-click items in the storage display to move them to your inventory
+- **Deposit All** - Quickly move ALL items from your inventory to nearby chests (stacks with existing items first, then fills empty slots)
 - **Take All** - Pull items from nearby chests into your inventory
 - Integrates seamlessly with the game's inventory system
 
@@ -194,9 +195,10 @@ The mod will find a safe landing spot at ground level.
 2. Press `R` to open the Chest Radius Inventory
 3. Use the search box to find specific items
 4. Click "Sort" to toggle sorting by name (A-Z)
-5. Use "Deposit All" to move matching items from your inventory to chests (only items that already exist in storage)
-6. Use "Take All" to retrieve items from chests to your inventory
-7. Scroll through the grid to see all available items
+5. **Shift-click** on items in the storage display to move them to your inventory
+6. Use "Deposit All" to move all items from your inventory to nearby chests (stacks with existing items first, then fills empty slots - just like normal game mechanics)
+7. Use "Take All" to retrieve items from chests to your inventory
+8. Scroll through the grid to see all available items
 
 ### Sorting Your Inventory
 
